@@ -1,0 +1,8 @@
+graph MadokaMagica { 
+	Sayaka -- Mami; 
+	Mami -- Madoka; 
+	Sayaka -- Madoka; 
+	Homura -- Madoka; 
+	Kyoko -- Madoka; 
+	Kyoko -- Sayaka; 
+} 
