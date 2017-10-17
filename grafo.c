@@ -33,6 +33,7 @@ struct vertice
 {
 	int id;
 	char *nome;
+	int cor;
 };
 
 static int numgraphs = 0; // Numero de grafos carregados
@@ -139,7 +140,7 @@ grafo le_grafo(FILE *input)
 	// Idem para a matriz de vértices
 	newGrafo->vertices = malloc(sizeof(vertice) * numnodes);
 	
-	int vertid = 0;
+	int nid = 0;
 	for(Agnode_t *n = agfstnode(g); n; n = agnxtnode(g, n))
 	{
 		vertice v = malloc(sizeof(struct vertice));
@@ -147,10 +148,10 @@ grafo le_grafo(FILE *input)
 
 		v->id = AGID(n);
 		v->nome = agnameof(n);
-		newGrafo->vertices[vertid++] = v;
+		newGrafo->vertices[nid++] = v;
 	}
 
-	int nid = 0;
+	nid = 0;
 	for(Agnode_t *n = agfstnode(g); n; n = agnxtnode(g, n))
 	{
 		for(Agedge_t *e = agfstout(g, n); e; e = agnxtout(g, e))
@@ -232,8 +233,42 @@ unsigned int grau(vertice v, int direcao, grafo g)
 
 vertice primeiro_vizinho(vertice v, int direcao, grafo g)
 {
+	// Procura id vertice no grafo.
+	int vertid;
+	for(vertid = 0; vertid < g->numvert; vertid++)
+	{
+		if(v == g->vertices[vertid]) break;
+	}
+	if(vertid == g->numvert)
+	{
+		return NULL; // vertice nao encontrado no grafo, nao deveria acontecer!
+	}
 
-  return NULL;
+	int incx = 0, incy = 0, x = 0, y = 0;
+	if(direcao == 1) 
+	{
+		// Vizinho de saida (percorre linha)
+		incx = 1;
+		y = vertid;
+	}
+	else
+	{
+		// Vizinho de entrada (percorre coluna)
+		incy = 1;
+		x = vertid;
+	}
+
+	while(x < g->numvert && y < g->numvert)
+	{
+		// Varre a matriz de adjacencia em busca do primeiro vizinho.
+		if(g->matadj[g->numvert * y + x] != 0) 
+			return g->vertices[(direcao == 1 ? x : y)];
+
+		// Apenas um desses valores será != 0.
+		x += incx;
+		y += incy;
+	}
+	return NULL;
 }
 //------------------------------------------------------------------------------
 // devolve o "próximo" vizinho de v em g após u,
@@ -248,8 +283,40 @@ vertice primeiro_vizinho(vertice v, int direcao, grafo g)
 
 vertice proximo_vizinho(vertice u, vertice v, int direcao, grafo g)
 {
+	// Busca o ID dos vertices relevantes no grafo.
+	int vid = g->numvert, uid = g->numvert;
+	for(int i = 0; i < g->numvert; i++)
+	{
+		if(u = g->vertices[i]) uid = i;
+		if(v = g->vertices[i]) vid = i;
+	}
+	// Algum dos vertices nao foi encontrado no grafo? Retorna.
+	if(vid == g->numvert || uid == g->numvert) return NULL; 
 
-return NULL;
+	int incx = 0, incy = 0, x, y;
+	if(direcao == 1)
+	{
+		// Vizinho de saida (percorre linha)
+		incx = 1;
+		x = uid + 1;
+		y = vid;
+	}
+	else
+	{
+		incy = 1;
+		x = vid;
+		y = uid + 1;
+	}
+
+	while(x < g->numvert && y < g->numvert)
+	{
+		if(g->matadj[g->numvert * y + x] != 0)
+			return g->vertices[(direcao == 1 ? x : y)];
+
+		x += incx;
+		y += incy;
+	}
+	return NULL;
 }
 //------------------------------------------------------------------------------
 // devolve 1, se v é um vértice simplicial em g, 
@@ -263,6 +330,34 @@ int simplicial(vertice v, grafo g)
 
 return 0;
 }
+
+void descolorir(grafo g)
+{
+	for(int i = 0; i < g->numvert; i++)
+		g->vertices[i]->cor = -1;
+}
+
+//------------------------------------------------------------------------------
+// devolve 1 se foi possivel pintar a arvore filha de v com cores alternadas de
+//            forma que dois vizinhos não tenham a mesma cor
+//         ou
+//         2 caso contrário.
+int pintaGrafoBipartido(grafo g, vertice v, int cor)
+{
+	v->cor = cor;
+	vertice pv = primeiro_vizinho(v, 1, g);
+	if(pv)
+	{
+		do {
+			if(pv->cor == -1)
+				if(!pintaGrafoBipartido(g, pv, cor^1)) return 0;
+			if(pv->cor == cor) return 0;
+
+		} while(pv = proximo_vizinho(pv, v, 1, g));
+	}
+	return 1;
+}
+
 //------------------------------------------------------------------------------
 // devolve 1, se g é um grafo bipartido, 
 //         ou
@@ -270,9 +365,11 @@ return 0;
 
 int bipartido( grafo g)
 {
-
-  return 0;
+	
+	return 0;
 }
+
+
 //------------------------------------------------------------------------------
 // devolve em c um caminho mínimo de u a v no grafo não direcionado g, 
 //              de forma que
