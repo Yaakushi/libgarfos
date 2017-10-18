@@ -34,6 +34,7 @@ struct vertice
 	int id;
 	char *nome;
 	int cor;
+	int vecid;
 };
 
 static int numgraphs = 0; // Numero de grafos carregados
@@ -163,6 +164,11 @@ grafo le_grafo(FILE *input)
 				newGrafo->matadj[numnodes * hid  + nid] = 1;
 		}
 		nid++;
+	}
+
+	for(int i = 0; i < g->numvert; i++)
+	{
+		g->vertices[i]->vecid = i;
 	}
 
 	// TODO: Remover.
