@@ -209,8 +209,14 @@ char *nome_vertice(vertice v)
 
 vertice vertice_nome(char *s, grafo g)
 {
-  
-  return NULL;
+	for (int i = 0; i < g->numvert; i++)
+	{
+		if (strcmp(g->vertices[i]->nome, s) == 0)
+		{
+			return g->vertices[i];
+		}
+	}
+	return NULL;
 }
 //------------------------------------------------------------------------------
 // devolve o grau do vértice v no grafo g
