@@ -166,9 +166,9 @@ grafo le_grafo(FILE *input)
 		nid++;
 	}
 
-	for(int i = 0; i < g->numvert; i++)
+	for(int i = 0; i < newGrafo->numvert; i++)
 	{
-		g->vertices[i]->vecid = i;
+		newGrafo->vertices[i]->vecid = i;
 	}
 
 	// TODO: Remover.
