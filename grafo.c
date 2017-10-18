@@ -339,8 +339,30 @@ vertice proximo_vizinho(vertice u, vertice v, int direcao, grafo g)
 
 int simplicial(vertice v, grafo g)
 {
-
-return 0;
+	// aloca vetor do tam do nº de nodos
+	int *vizin = malloc(sizeof(int) * g->numvert);
+	int clique = 1;
+	int numvi = 0;
+	int i, j;
+	for (i = 0; i < g->numvert; i++) // busca vizinhos de g
+	{
+		if (g->matadj[g->numvert * v->vecid + i] != 0) {
+			vizin[numvi++] = i;
+		}
+	} // encontra numvi vizinhos em vizin[0] a vizin[numvi]
+	for (i = 0; i < numvi && clique != 0; i++) // para cada vizin
+	{
+		for (j = 0; j != i && j < numvi; j++) // para todo outro vizin
+		{
+			clique = clique * g->matadj[g->numvert * vizin[i] + vizin[j]];
+		}
+	}
+	if (clique == 0)
+	{
+		return 0;
+	} else {
+		return 1;
+	}
 }
 
 void descolorir(grafo g)
