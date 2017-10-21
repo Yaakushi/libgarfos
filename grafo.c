@@ -426,33 +426,33 @@ int caminho_minimo(vertice *c, vertice u, vertice v, grafo g)
 
 int diametro(grafo g)
 {
-    int min = infinito;
+    int max = 0;
     int ijk;
-    int k;
-    int *matFloyd = malloc(numnodes * numnodes * sizeof(int));
+	int tam = g->numvert * g->numvert;
+    int *matFloyd = malloc(tam * sizeof(int));
     int linha = 0;
-    for (k = 0; k < g->numvert; k++) {
-        matFloyd[k] = ((g->matadj[k] == 0) && (k mod g->numvert != linha) ? infinito : g->matadj[k]); 
+    for (k = 0; k < tam; k++) {
         // Quando o valor na matriz original é 0 && não está na diag principal
-        if (k mod g->numvert == g->numvert - 1) { // Última iteração
-            linha++;
+        matFloyd[k] = ((g->matadj[k] == 0) && (k % g->numvert != linha) ? infinito : g->matadj[k]); 
+        if ((k % g->numvert) == g->numvert - 1) {
+            linha++; // Quando k mod g->numvert == linha, g->matadj[k] está na diagonal principal
         }
     }
-    for (k = 0; k < g->numvert; k++) {
+    for (int k = 0; k < g->numvert; k++) {
         for (int i = 0; i < g->numvert; i++) {
             for (int j = 0; j < g->numvert; j++) {
                 ijk = matFloyd[g->numvert * i + k] + matFloyd[g->numvert * k + j];
-                if (k == g->numvert - 1) {
-                    min = (ijk < min ? ijk : min);
-                }
                 if (ijk < matFloyd[g->numvert * i + j]) {
                     matFloyd[g->numvert * i + j] = ijk;
 					// imprime_matriz(matFloyd, tam, g->numvert);
                 }
+				if (k == g->numvert -1) { 
+                	max = (matFloyd[g->numvert * i + j] > max ? matFloyd[g->numvert * i + j] : max);
+				}
             }
         }
     }
-    return min;
+    return max;
 }
 //------------------------------------------------------------------------------
 
