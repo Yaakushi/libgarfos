@@ -447,6 +447,7 @@ int diametro(grafo g)
                 }
                 if (ijk < matFloyd[g->numvert * i + j]) {
                     matFloyd[g->numvert * i + j] = ijk;
+					// imprime_matriz(matFloyd, tam, g->numvert);
                 }
             }
         }
@@ -455,7 +456,21 @@ int diametro(grafo g)
 }
 //------------------------------------------------------------------------------
 
-
+void imprime_matriz(int *mat, int tam, int numvert)
+{
+	int linha = 0;
+	for (int i = 0; i < tam; i++) {
+		if (mat[i] == infinito) {
+			printf("oo ");
+		} else {
+			printf("%d ", mat[i]);
+		}
+		if (i % numvert == numvert - 1) {
+			printf("\n");
+			linha++;
+		}
+	}
+}
 
 
 
