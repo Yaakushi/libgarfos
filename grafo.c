@@ -5,7 +5,7 @@
 //------------------------------------------------------------------------------
 // o valor que representa "infinito"
 
-const int infinito = 0;
+const int infinito = 0x3f3f3f3f;
 
 //------------------------------------------------------------------------------
 // (apontador para) estrutura de dados para representar um grafo
@@ -426,7 +426,36 @@ int caminho_minimo(vertice *c, vertice u, vertice v, grafo g)
 
 int diametro(grafo g)
 {
-
-  return 0;
+    int min = infinito;
+    int ijk;
+    int k;
+    int *matFloyd = malloc(numnodes * numnodes * sizeof(int));
+    int linha = 0;
+    for (k = 0; k < g->numvert; k++) {
+        matFloyd[k] = ((g->matadj[k] == 0) && (k mod g->numvert != linha) ? infinito : g->matadj[k]); 
+        // Quando o valor na matriz original é 0 && não está na diag principal
+        if (k mod g->numvert == g->numvert - 1) { // Última iteração
+            linha++;
+        }
+    }
+    for (k = 0; k < g->numvert; k++) {
+        for (int i = 0; i < g->numvert; i++) {
+            for (int j = 0; j < g->numvert; j++) {
+                ijk = matFloyd[g->numvert * i + k] + matFloyd[g->numvert * k + j];
+                if (k == g->numvert - 1) {
+                    min = (ijk < min ? ijk : min);
+                }
+                if (ijk < matFloyd[g->numvert * i + j]) {
+                    matFloyd[g->numvert * i + j] = ijk;
+                }
+            }
+        }
+    }
+    return min;
 }
 //------------------------------------------------------------------------------
+
+
+
+
+
