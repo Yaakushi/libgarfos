@@ -191,8 +191,55 @@ grafo le_grafo(FILE *input)
 
 grafo escreve_grafo(FILE *output, grafo g)
 {
-	// TODO: Fazer.
-	return NULL;
+	int *indices = malloc(g->numvert * sizeof(int));
+	int i, j;
+	int k = 0;
+	if (output == NULL) {
+		return NULL;
+	}
+	if (g->isdirec) {
+		fprintf(output, "digraph %s {\n", g->nome);
+		for (i = 0; i < g->numvert; i++) {
+			for (j = 0; j < g->numvert; j++) {
+				if (g->matadj[g->numvert * i + j] > 0) {
+					indices[k++] = j;
+				}
+			}
+			if (k > 1) {
+				fprintf(output, "\t%s -> {", g->vertices[i]->nome);
+				for (j = 0; j < k - 1; j++) {
+					fprintf(output, "%s ", g->vertices[indices[j]]->nome);
+				}
+				fprintf(output, "%s};\n", g->vertices[indices[j]]->nome);
+			} else if (k == 1){
+				fprintf(output, "\t%s -> %s\n;", g->vertices[i]->nome, g->vertices[indices[0]]->nome);
+			}
+			k = 0;
+		}
+		printf("}\n");
+	} else {
+		fprintf(output, "graph %s {\n", g->nome);
+		for (i = 0; i < g->numvert - 1; i++) {
+			for (j = i + 1; j < g->numvert; j++) {
+				if (g->matadj[g->numvert * i + j] > 0) {
+					indices[k++] = j;
+				}
+			}
+			if (k > 1) {
+				fprintf(output, "\t%s -- {", g->vertices[i]->nome);
+				for (j = 0; j < k - 1; j++) {
+					fprintf(output, "%s ", g->vertices[indices[j]]->nome);
+				}
+				fprintf(output, "%s};\n", g->vertices[indices[j]]->nome);
+			} else if (k == 1){
+				fprintf(output, "\t%s -- %s;\n", g->vertices[i]->nome, g->vertices[indices[0]]->nome);
+			}
+			k = 0;
+		}
+		printf("}\n");
+	}
+	free(indices);
+	return g;
 }
 //------------------------------------------------------------------------------
 // devolve o nome do vertice v
