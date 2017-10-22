@@ -18,10 +18,10 @@ const int infinito = 0x3f3f3f3f;
 
 struct grafo
 {
-	const char *nome;
+	char *nome;
 	unsigned int numvert; // Numero de vertices
-	vertice *vertices;
 	unsigned int numarestas; // Numero de arestas (TODO: detalhar motivo da escolha no readme)
+	vertice *vertices;
 	int *matadj; // Matriz de adjacencia
 	int isdirec; // É direcionado?
 };
@@ -34,10 +34,10 @@ struct grafo
 struct vertice 
 {
 	int id;
-	char *nome;
 	int cor, visitado, nivel;
-	int vecid;
+	char *nome;
 	vertice pai;
+	int vecid, pad;
 };
 
 static int numgraphs = 0; // Numero de grafos carregados
@@ -45,7 +45,7 @@ static grafo *graphs = NULL; // Array de grafos carregados
 
 static int get_vertice_index(grafo g, Agnode_t *other_node)
 {
-	for(unsigned int i = 0; i < g->numvert; i++)
+	for(int i = 0; i < (int) g->numvert; i++)
 		if(g->vertices[i]->id == (int) AGID(other_node)) 
 			return i;
 
@@ -58,7 +58,7 @@ static int get_vertice_index(grafo g, Agnode_t *other_node)
 char *nome_grafo(grafo g)
 {
 	if(!g) return NULL;
-	return (g->nome != NULL) ? g->nome : "";
+	return g->nome;
 }
 //------------------------------------------------------------------------------
 // devolve um grafo de nome s,
@@ -91,7 +91,7 @@ int direcionado(grafo g)
 
 unsigned int numero_vertices(grafo g)
 {
-	if(!g) return -1;
+	if(!g) return 0;
 	return g->numvert;
 }
 //------------------------------------------------------------------------------
@@ -99,7 +99,7 @@ unsigned int numero_vertices(grafo g)
 
 unsigned int numero_arestas(grafo g)
 {
-	if(!g) return -1;
+	if(!g) return 0;
 	return g->numarestas;
 }
 //------------------------------------------------------------------------------
@@ -111,8 +111,16 @@ unsigned int numero_arestas(grafo g)
 
 int destroi_grafo(grafo g)
 {
-	// TODO
-	return 0;
+	if(!g) return 0;
+	for(unsigned int i = 0; i < g->numvert; i++)
+	{
+		free(g->vertices[i]->nome);
+		free(g->vertices[i]);
+	}
+	free(g->vertices);
+	free(g->matadj);
+	free(g);
+	return 1;
 }
 //------------------------------------------------------------------------------
 // lê um grafo no formato dot de input
@@ -131,19 +139,20 @@ grafo le_grafo(FILE *input)
 
 	int numnodes = agnnodes(g);
 	// Preenche os campos que a lib "dá de graça".
-	newGrafo->nome = agnameof(g);
-	newGrafo->numvert = numnodes;
-	newGrafo->numarestas = agnedges(g);
+	//newGrafo->nome = agnameof(g);
+	newGrafo->nome = malloc(sizeof(char) * (strlen(agnameof(g)) + 1));
+	strcpy(newGrafo->nome, agnameof(g));
+	newGrafo->numvert = (unsigned int) numnodes;
+	newGrafo->numarestas = (unsigned int) agnedges(g);
 	newGrafo->isdirec = agisdirected(g);
-	printf("isdirec: %d\n", newGrafo->isdirec);
 
 	// Aloca a matriz de adjacência e a array de vértices
-	newGrafo->matadj = calloc(numnodes * numnodes, sizeof(int));
+	newGrafo->matadj = calloc((size_t) (numnodes * numnodes), sizeof(int));
 	if(!newGrafo->matadj)
 		return NULL;
 
 	// Idem para a matriz de vértices
-	newGrafo->vertices = malloc(sizeof(vertice) * numnodes);
+	newGrafo->vertices = malloc(sizeof(vertice) * (unsigned int) numnodes);
 	
 	int nid = 0;
 	for(Agnode_t *n = agfstnode(g); n; n = agnxtnode(g, n))
@@ -152,7 +161,10 @@ grafo le_grafo(FILE *input)
 		if(!v) return NULL;
 
 		v->id = AGID(n);
-		v->nome = agnameof(n);
+		//v->nome = agnameof(n);
+		v->nome = malloc(sizeof(char) * (strlen(agnameof(n)) + 1));
+		if(!v->nome) return NULL;
+		strcpy(v->nome,	agnameof(n));
 		newGrafo->vertices[nid++] = v;
 	}
 
@@ -163,6 +175,7 @@ grafo le_grafo(FILE *input)
 		{
 			Agnode_t *head = aghead(e);
 			int hid = get_vertice_index(newGrafo, head);
+			printf("nid %d | hid %d | [%d]\n", nid, hid, nid*numnodes + hid);
 			newGrafo->matadj[numnodes * nid + hid] = 1;
 			if(!newGrafo->isdirec)
 				newGrafo->matadj[numnodes * hid  + nid] = 1;
@@ -175,13 +188,7 @@ grafo le_grafo(FILE *input)
 		newGrafo->vertices[i]->vecid = i;
 	}
 
-	// TODO: Remover.
-	//for(int i = 0; i < numnodes; i++) {
-	//	for(int j = 0; j < numnodes; j++) {
-	//		printf("%d ", newGrafo->matadj[numnodes*i+j]);
-	//	}
-	//	printf("\n");
-	//}
+	agclose(g);
 
 	return newGrafo;
 }
@@ -280,8 +287,14 @@ vertice vertice_nome(char *s, grafo g)
 
 unsigned int grau(vertice v, int direcao, grafo g)
 {
-
-  return 0;
+	vertice pv = primeiro_vizinho(v, direcao, g);
+	int count = 0;
+	if(v)
+	{
+		do count++;
+		while((pv = proximo_vizinho(pv, v, direcao, g)));
+	}
+	return count;
 }
 //------------------------------------------------------------------------------
 // devolve o "primeiro" vizinho de v em g,
