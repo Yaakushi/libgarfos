@@ -178,7 +178,6 @@ grafo le_grafo(FILE *input)
 		{
 			Agnode_t *head = aghead(e);
 			int hid = get_vertice_index(newGrafo, head);
-			printf("nid %d | hid %d | [%d]\n", nid, hid, nid*numnodes + hid);
 			newGrafo->matadj[numnodes * nid + hid] = 1;
 			if(!newGrafo->isdirec)
 				newGrafo->matadj[numnodes * hid  + nid] = 1;
