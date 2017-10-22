@@ -344,21 +344,18 @@ int simplicial(vertice v, grafo g)
 	int clique = 1;
 	int numvi = 0;
 	int i, j;
-	for (i = 0; i < g->numvert; i++) // busca vizinhos de g
-	{
+	for (i = 0; i < g->numvert; i++) { // busca vizinhos de g
 		if (g->matadj[g->numvert * v->vecid + i] != 0) {
 			vizin[numvi++] = i;
 		}
 	} // encontra numvi vizinhos em vizin[0] a vizin[numvi]
-	for (i = 0; i < numvi && clique != 0; i++) // para cada vizin
-	{
-		for (j = 0; j != i && j < numvi; j++) // para todo outro vizin
-		{
+	for (i = 0; i < numvi && clique != 0; i++) { // para cada vizin
+		for (j = 0; j != i && j < numvi; j++) { // para todo outro vizin
 			clique = clique * g->matadj[g->numvert * vizin[i] + vizin[j]];
 		}
 	}
-	if (clique == 0)
-	{
+	free(vizin);
+	if (clique == 0) {
 		return 0;
 	} else {
 		return 1;
@@ -431,7 +428,7 @@ int diametro(grafo g)
 	int tam = g->numvert * g->numvert;
     int *matFloyd = malloc(tam * sizeof(int));
     int linha = 0;
-    for (k = 0; k < tam; k++) {
+    for (int k = 0; k < tam; k++) {
         // Quando o valor na matriz original é 0 && não está na diag principal
         matFloyd[k] = ((g->matadj[k] == 0) && (k % g->numvert != linha) ? infinito : g->matadj[k]); 
         if ((k % g->numvert) == g->numvert - 1) {
@@ -452,6 +449,7 @@ int diametro(grafo g)
             }
         }
     }
+	free(matFloyd);
     return max;
 }
 //------------------------------------------------------------------------------
