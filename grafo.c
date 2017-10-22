@@ -225,7 +225,7 @@ grafo escreve_grafo(FILE *output, grafo g)
 				}
 				fprintf(output, "%s};\n", g->vertices[indices[j]]->nome);
 			} else if (k == 1){
-				fprintf(output, "\t%s -> %s\n;", g->vertices[i]->nome, g->vertices[indices[0]]->nome);
+				fprintf(output, "\t%s -> %s;\n", g->vertices[i]->nome, g->vertices[indices[0]]->nome);
 			}
 			k = 0;
 		}
