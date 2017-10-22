@@ -22,7 +22,7 @@ struct grafo
 {
 	char *nome;
 	unsigned int numvert; // Numero de vertices
-	unsigned int numarestas; // Numero de arestas (TODO: detalhar motivo da escolha no readme)
+	unsigned int numarestas; // Numero de arestas
 	vertice *vertices;
 	int *matadj; // Matriz de adjacencia
 	int isdirec; // É direcionado?
@@ -122,6 +122,7 @@ int destroi_grafo(grafo g)
 	}
 	free(g->vertices);
 	free(g->matadj);
+	free(g->nome);
 	free(g);
 	return 1;
 }
