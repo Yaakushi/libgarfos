@@ -9,6 +9,8 @@
 
 const int infinito = 0x3f3f3f3f;
 
+// Função para testes com matriz de adjacência
+void imprime_matriz(int *, unsigned int, unsigned int);
 //------------------------------------------------------------------------------
 // (apontador para) estrutura de dados para representar um grafo
 // 
@@ -33,10 +35,10 @@ struct grafo
 
 struct vertice 
 {
-	int id;
+	long unsigned int id;
 	char *nome;
 	int cor, visitado, nivel;
-	int vecid;
+	unsigned int vecid;
 	vertice pai;
 };
 
@@ -170,7 +172,7 @@ grafo le_grafo(FILE *input)
 		nid++;
 	}
 
-	for(int i = 0; i < newGrafo->numvert; i++)
+	for(unsigned int i = 0; i < newGrafo->numvert; i++)
 	{
 		newGrafo->vertices[i]->vecid = i;
 	}
@@ -195,9 +197,9 @@ grafo le_grafo(FILE *input)
 
 grafo escreve_grafo(FILE *output, grafo g)
 {
-	int *indices = malloc(g->numvert * sizeof(int));
-	int i, j;
-	int k = 0;
+	unsigned int *indices = malloc(g->numvert * sizeof(int));
+	unsigned int i, j;
+	unsigned int k = 0;
 	if (output == NULL) {
 		return NULL;
 	}
@@ -251,7 +253,9 @@ grafo escreve_grafo(FILE *output, grafo g)
 char *nome_vertice(vertice v)
 {
 	if(!v) return NULL;
-	return (v->nome != NULL) ? v->nome : "";
+	char vazio[1];
+	vazio[0] = (char)0;
+	return (v->nome != NULL) ? v->nome : vazio;
 }
 //------------------------------------------------------------------------------
 // devolve um vertice de nome s no grafo g,
@@ -260,7 +264,7 @@ char *nome_vertice(vertice v)
 
 vertice vertice_nome(char *s, grafo g)
 {
-	for (int i = 0; i < g->numvert; i++)
+	for (unsigned int i = 0; i < g->numvert; i++)
 	{
 		if (strcmp(g->vertices[i]->nome, s) == 0)
 		{
@@ -297,7 +301,7 @@ unsigned int grau(vertice v, int direcao, grafo g)
 vertice primeiro_vizinho(vertice v, int direcao, grafo g)
 {
 	// Procura id vertice no grafo.
-	int vertid;
+	unsigned int vertid;
 	for(vertid = 0; vertid < g->numvert; vertid++)
 	{
 		if(v == g->vertices[vertid]) break;
@@ -307,7 +311,7 @@ vertice primeiro_vizinho(vertice v, int direcao, grafo g)
 		return NULL; // vertice nao encontrado no grafo, nao deveria acontecer!
 	}
 
-	int incx = 0, incy = 0, x = 0, y = 0;
+	unsigned int incx = 0, incy = 0, x = 0, y = 0;
 	if(direcao == 1) 
 	{
 		// Vizinho de saida (percorre linha)
@@ -347,8 +351,8 @@ vertice primeiro_vizinho(vertice v, int direcao, grafo g)
 vertice proximo_vizinho(vertice u, vertice v, int direcao, grafo g)
 {
 	// Busca o ID dos vertices relevantes no grafo.
-	int vid = g->numvert, uid = g->numvert;
-	for(int i = 0; i < g->numvert; i++)
+	unsigned int vid = g->numvert, uid = g->numvert;
+	for(unsigned int i = 0; i < g->numvert; i++)
 	{
 		if(u == g->vertices[i]) uid = i;
 		if(v == g->vertices[i]) vid = i;
@@ -356,7 +360,7 @@ vertice proximo_vizinho(vertice u, vertice v, int direcao, grafo g)
 	// Algum dos vertices nao foi encontrado no grafo? Retorna.
 	if(vid == g->numvert || uid == g->numvert) return NULL; 
 
-	int incx = 0, incy = 0, x, y;
+	unsigned int incx = 0, incy = 0, x, y;
 	if(direcao == 1)
 	{
 		// Vizinho de saida (percorre linha)
@@ -392,10 +396,10 @@ vertice proximo_vizinho(vertice u, vertice v, int direcao, grafo g)
 int simplicial(vertice v, grafo g)
 {
 	// aloca vetor do tam do nº de nodos
-	int *vizin = malloc(sizeof(int) * g->numvert);
+	unsigned int *vizin = malloc(sizeof(int) * g->numvert);
 	int clique = 1;
-	int numvi = 0;
-	int i, j;
+	unsigned int numvi = 0;
+	unsigned int i, j;
 	for (i = 0; i < g->numvert; i++) { // busca vizinhos de g
 		if (g->matadj[g->numvert * v->vecid + i] != 0) {
 			vizin[numvi++] = i;
@@ -419,7 +423,7 @@ int simplicial(vertice v, grafo g)
 //            forma que dois vizinhos não tenham a mesma cor
 //         ou
 //         2 caso contrário.
-int pintaGrafoBipartido(grafo g, vertice v, int cor)
+static int pintaGrafoBipartido(grafo g, vertice v, int cor)
 {
 	v->cor = cor;
 	vertice pv = primeiro_vizinho(v, 1, g);
@@ -434,7 +438,7 @@ int pintaGrafoBipartido(grafo g, vertice v, int cor)
 				return 0;
 
 		}
-		while(pv = proximo_vizinho(pv, v, 1, g));
+		while((pv = proximo_vizinho(pv, v, 1, g)));
 	}
 	return 1;
 }
@@ -447,7 +451,7 @@ int pintaGrafoBipartido(grafo g, vertice v, int cor)
 int bipartido(grafo g)
 {
 	// Zera a cor do vertice
-	for(int i = 0; i < g->numvert; i++)
+	for(unsigned int i = 0; i < g->numvert; i++)
 		g->vertices[i]->cor = -1;
 
 	int *origmatadj = NULL;
@@ -456,23 +460,26 @@ int bipartido(grafo g)
 		// Caso seja direcionado, "removemos o direcionamento" do grafo.
 		origmatadj= g->matadj;
 		g->matadj = malloc(sizeof(int) * g->numvert * g->numvert);
-		for(int i = 0; i < g->numvert; i++)
+		for(unsigned int i = 0; i < g->numvert; i++)
 		{
-			for(int j = 0; j < g->numvert; j++)
+			for(unsigned int j = 0; j < g->numvert; j++)
 			{
-				if(i == j) g->matadj[i * g->numvert + j] = 0;
-				else g->matadj[i * g->numvert + j] =
+				if(i == j) {
+					 g->matadj[i * g->numvert + j] = 0;
+				} else {
+					g->matadj[i * g->numvert + j] =
 						(origmatadj[i * g->numvert + j] != 0 ||
 						 origmatadj[j * g->numvert + i] != 0 ?
 						 1 :
 						 0);
+				}
 			}
 		}
 	}
 
 	int ehBipartido = 1;
 
-	for(int i = 0; i < g->numvert && ehBipartido; i++)
+	for(unsigned int i = 0; i < g->numvert && ehBipartido; i++)
 	{
 		if(g->vertices[i]->cor != -1) continue;
 		ehBipartido = pintaGrafoBipartido(g, g->vertices[i], 0);
@@ -503,9 +510,9 @@ int bipartido(grafo g)
 int caminho_minimo(vertice *c, vertice u, vertice v, grafo g)
 {
 	vertice *queue = NULL;
-	int qsize = 0;
+	long unsigned int qsize = 0;
 
-	for(int i = 0; i < g->numvert; i++)
+	for(unsigned int i = 0; i < g->numvert; i++)
 	{
 		g->vertices[i]->visitado = 0;
 		g->vertices[i]->pai = NULL;
@@ -527,7 +534,7 @@ int caminho_minimo(vertice *c, vertice u, vertice v, grafo g)
 				viz->visitado = 1;
 				viz->nivel = curver->nivel + 1;
 			}
-			while(viz = proximo_vizinho(viz, curver, 1, g));
+			while((viz = proximo_vizinho(viz, curver, 1, g)));
 		}
 		if(qsize > 0)
 		{
@@ -561,19 +568,19 @@ int diametro(grafo g)
 {
     int max = 0;
     int ijk;
-	int tam = g->numvert * g->numvert;
+	unsigned int tam = g->numvert * g->numvert;
     int *matFloyd = malloc(tam * sizeof(int));
-    int linha = 0;
-    for (int k = 0; k < tam; k++) {
+    unsigned int linha = 0;
+    for (unsigned int k = 0; k < tam; k++) {
         // Quando o valor na matriz original é 0 && não está na diag principal
         matFloyd[k] = ((g->matadj[k] == 0) && (k % g->numvert != linha) ? infinito : g->matadj[k]); 
         if ((k % g->numvert) == g->numvert - 1) {
             linha++; // Quando k mod g->numvert == linha, g->matadj[k] está na diagonal principal
         }
     }
-    for (int k = 0; k < g->numvert; k++) {
-        for (int i = 0; i < g->numvert; i++) {
-            for (int j = 0; j < g->numvert; j++) {
+    for (unsigned int k = 0; k < g->numvert; k++) {
+        for (unsigned int i = 0; i < g->numvert; i++) {
+            for (unsigned int j = 0; j < g->numvert; j++) {
                 ijk = matFloyd[g->numvert * i + k] + matFloyd[g->numvert * k + j];
                 if (ijk < matFloyd[g->numvert * i + j]) {
                     matFloyd[g->numvert * i + j] = ijk;
@@ -590,10 +597,10 @@ int diametro(grafo g)
 }
 //------------------------------------------------------------------------------
 
-void imprime_matriz(int *mat, int tam, int numvert)
+void imprime_matriz(int *mat, unsigned int tam, unsigned int numvert)
 {
-	int linha = 0;
-	for (int i = 0; i < tam; i++) {
+	unsigned int linha = 0;
+	for (unsigned int i = 0; i < tam; i++) {
 		if (mat[i] == infinito) {
 			printf("oo ");
 		} else {
