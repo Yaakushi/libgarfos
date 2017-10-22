@@ -1,0 +1,11 @@
+graph bipartido {
+	A -- R
+	A -- S
+	A -- T
+	A -- U
+	A -- V
+	B -- U
+	C -- S
+	D -- T
+	D -- V
+}
