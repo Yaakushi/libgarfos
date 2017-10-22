@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include <graphviz/cgraph.h>
 #include "grafo.h"
 
@@ -16,10 +18,10 @@ const int infinito = 0x3f3f3f3f;
 
 struct grafo
 {
-	char *nome;
-	int numvert; // Numero de vertices
+	const char *nome;
+	unsigned int numvert; // Numero de vertices
 	vertice *vertices;
-	int numarestas; // Numero de arestas (detalhar motivo da escolha no readme)
+	unsigned int numarestas; // Numero de arestas (TODO: detalhar motivo da escolha no readme)
 	int *matadj; // Matriz de adjacencia
 	int isdirec; // É direcionado?
 };
@@ -33,8 +35,9 @@ struct vertice
 {
 	int id;
 	char *nome;
-	int cor;
+	int cor, visitado, nivel;
 	int vecid;
+	vertice pai;
 };
 
 static int numgraphs = 0; // Numero de grafos carregados
@@ -42,7 +45,7 @@ static grafo *graphs = NULL; // Array de grafos carregados
 
 static int get_vertice_index(grafo g, Agnode_t *other_node)
 {
-	for(int i = 0; i < g->numvert; i++)
+	for(unsigned int i = 0; i < g->numvert; i++)
 		if(g->vertices[i]->id == (int) AGID(other_node)) 
 			return i;
 
@@ -132,6 +135,7 @@ grafo le_grafo(FILE *input)
 	newGrafo->numvert = numnodes;
 	newGrafo->numarestas = agnedges(g);
 	newGrafo->isdirec = agisdirected(g);
+	printf("isdirec: %d\n", newGrafo->isdirec);
 
 	// Aloca a matriz de adjacência e a array de vértices
 	newGrafo->matadj = calloc(numnodes * numnodes, sizeof(int));
@@ -346,8 +350,8 @@ vertice proximo_vizinho(vertice u, vertice v, int direcao, grafo g)
 	int vid = g->numvert, uid = g->numvert;
 	for(int i = 0; i < g->numvert; i++)
 	{
-		if(u = g->vertices[i]) uid = i;
-		if(v = g->vertices[i]) vid = i;
+		if(u == g->vertices[i]) uid = i;
+		if(v == g->vertices[i]) vid = i;
 	}
 	// Algum dos vertices nao foi encontrado no grafo? Retorna.
 	if(vid == g->numvert || uid == g->numvert) return NULL; 
@@ -377,6 +381,7 @@ vertice proximo_vizinho(vertice u, vertice v, int direcao, grafo g)
 	}
 	return NULL;
 }
+
 //------------------------------------------------------------------------------
 // devolve 1, se v é um vértice simplicial em g, 
 //         ou
@@ -409,12 +414,6 @@ int simplicial(vertice v, grafo g)
 	}
 }
 
-void descolorir(grafo g)
-{
-	for(int i = 0; i < g->numvert; i++)
-		g->vertices[i]->cor = -1;
-}
-
 //------------------------------------------------------------------------------
 // devolve 1 se foi possivel pintar a arvore filha de v com cores alternadas de
 //            forma que dois vizinhos não tenham a mesma cor
@@ -426,12 +425,16 @@ int pintaGrafoBipartido(grafo g, vertice v, int cor)
 	vertice pv = primeiro_vizinho(v, 1, g);
 	if(pv)
 	{
-		do {
+		do 
+		{
 			if(pv->cor == -1)
 				if(!pintaGrafoBipartido(g, pv, cor^1)) return 0;
-			if(pv->cor == cor) return 0;
 
-		} while(pv = proximo_vizinho(pv, v, 1, g));
+			if(pv->cor == cor)
+				return 0;
+
+		}
+		while(pv = proximo_vizinho(pv, v, 1, g));
 	}
 	return 1;
 }
@@ -441,10 +444,47 @@ int pintaGrafoBipartido(grafo g, vertice v, int cor)
 //         ou
 //         0, caso contrário
 
-int bipartido( grafo g)
+int bipartido(grafo g)
 {
-	
-	return 0;
+	// Zera a cor do vertice
+	for(int i = 0; i < g->numvert; i++)
+		g->vertices[i]->cor = -1;
+
+	int *origmatadj = NULL;
+	if(g->isdirec)
+	{
+		// Caso seja direcionado, "removemos o direcionamento" do grafo.
+		origmatadj= g->matadj;
+		g->matadj = malloc(sizeof(int) * g->numvert * g->numvert);
+		for(int i = 0; i < g->numvert; i++)
+		{
+			for(int j = 0; j < g->numvert; j++)
+			{
+				if(i == j) g->matadj[i * g->numvert + j] = 0;
+				else g->matadj[i * g->numvert + j] =
+						(origmatadj[i * g->numvert + j] != 0 ||
+						 origmatadj[j * g->numvert + i] != 0 ?
+						 1 :
+						 0);
+			}
+		}
+	}
+
+	int ehBipartido = 1;
+
+	for(int i = 0; i < g->numvert && ehBipartido; i++)
+	{
+		if(g->vertices[i]->cor != -1) continue;
+		ehBipartido = pintaGrafoBipartido(g, g->vertices[i], 0);
+	}
+
+	if(origmatadj)
+	{
+		// Restaura a matriz de adjacencia do grafo dirigido.
+		free(g->matadj);
+		g->matadj = origmatadj;
+	}
+	return ehBipartido;
 }
 
 
@@ -462,8 +502,57 @@ int bipartido( grafo g)
 
 int caminho_minimo(vertice *c, vertice u, vertice v, grafo g)
 {
+	vertice *queue = NULL;
+	int qsize = 0;
 
-  return 0;
+	for(int i = 0; i < g->numvert; i++)
+	{
+		g->vertices[i]->visitado = 0;
+		g->vertices[i]->pai = NULL;
+	}
+	u->nivel = 0;
+
+	vertice curver = u;
+	while(curver != v)
+	{
+		vertice viz = primeiro_vizinho(curver, 1, g);
+		if(viz)
+		{
+			do
+			{
+				if(viz->visitado != 0) continue;
+				queue = realloc(queue, (++qsize)*sizeof(vertice));
+				queue[qsize-1] = viz;
+				viz->pai = curver;
+				viz->visitado = 1;
+				viz->nivel = curver->nivel + 1;
+			}
+			while(viz = proximo_vizinho(viz, curver, 1, g));
+		}
+		if(qsize > 0)
+		{
+			curver->visitado = 2;
+			curver = queue[0];
+			memmove(queue, queue+1, (--qsize)*sizeof(vertice));
+			queue = realloc(queue, qsize*sizeof(vertice));
+		}
+		else
+		{
+			c[0] = NULL;
+			return infinito;
+		}
+	}
+
+	int distancia = curver->nivel;
+
+	for(int i = distancia; i > 0; i--)
+	{
+		c[i] = curver;
+		curver = curver->pai;
+	}
+	c[0] = u;
+
+	return distancia;
 }
 //------------------------------------------------------------------------------
 // devolve o diâmetro do grafo g

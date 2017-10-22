@@ -16,16 +16,24 @@ int main(void) {
 	else
 		printf("diâmetro = %d\n", d);
 
-	char *s = "A";
+	char *s = "a";
 	vertice v = vertice_nome(s, g); 
+	char *b = "d";
+	vertice v2 = vertice_nome(b, g);
+
+	vertice *c = malloc(100 * sizeof(vertice));
+
+	int dist = caminho_minimo(c, v, v2, g);
+	printf("DISTANCIA DE RUN PARA RUNSWAP: %d.\n", dist);
+	
 	if (v != NULL) {
-		printf("%ssimplicial\n", simplicial(v, g) ? "" : "não ");
+		//printf("%ssimplicial\n", simplicial(v, g) ? "" : "não ");
 	}
 	printf("nome: %s\n", nome_grafo(g));
 	printf("%d vértices\n", numero_vertices(g));
 	printf("%d arestas\n", numero_arestas(g));
-	printf("%sdirecionado\n", direcionado(g) ? "" : "não \n");
-	printf("%sbipartido\n", bipartido(g) ? "" : "não \n");
+	printf("%sdirecionado\n", direcionado(g) ? "" : "não ");
+	printf("%sbipartido\n", bipartido(g) ? "" : "não ");
 
 
 	escreve_grafo(stdout, g);
