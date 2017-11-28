@@ -11,9 +11,9 @@ const int infinito;
 //------------------------------------------------------------------------------
 // (apontador para) estrutura de dados para representar um grafo
 // 
-// o grafo pode ser direcionado ou não
+// o grafo pode ser direcionado ou nÃ£o
 // 
-// o grafo tem um nome, que é uma "string"
+// o grafo tem um nome, que Ã© uma "string"
 
 typedef struct grafo *grafo;
 
@@ -25,38 +25,48 @@ char *nome_grafo(grafo g);
 //------------------------------------------------------------------------------
 // devolve um grafo de nome s,
 //         ou 
-//         NULL, caso não exista tal grafo
+//         NULL, caso nÃ£o exista tal grafo
 
 grafo grafo_nome(char *s);
 
 //------------------------------------------------------------------------------
-// devolve 1, se g é direcionado,
+// devolve 1, se g Ã© direcionado,
 //         ou 
-//         0, caso contrário
+//         0, caso contrÃ¡rio
 
 int direcionado(grafo g);
 
 //------------------------------------------------------------------------------
-// devolve o número de vértices do grafo g
+// devolve 1, se g Ã© ponderado,
+//         ou 
+//         0, caso contrÃ¡rio
+//
+// o grafo g Ã© ponderado se todas as suas arestas/arcos tem um
+// atributo de nome "weight" cujo valor Ã© um nÃºmero.
+
+int ponderado(grafo g);
+
+//------------------------------------------------------------------------------
+// devolve o nÃºmero de vÃ©rtices do grafo g
 
 unsigned int numero_vertices(grafo g);
 
 //------------------------------------------------------------------------------
-// devolve o número de arestas/arcos do grafo g
+// devolve o nÃºmero de arestas/arcos do grafo g
 
 unsigned int numero_arestas(grafo g);
 
 //------------------------------------------------------------------------------
-// desaloca toda a memória usada em *g
+// desaloca toda a memÃ³ria usada em *g
 // 
 // devolve 1 em caso de sucesso,
 //         ou 
-//         0, caso contrário
+//         0, caso contrÃ¡rio
 
 int destroi_grafo(grafo g);
 
 //------------------------------------------------------------------------------
-// lê um grafo no formato dot de input
+// lÃª um grafo no formato dot de input
 // 
 // devolve o grafo lido,
 //         ou 
@@ -74,9 +84,9 @@ grafo le_grafo(FILE *input);
 grafo escreve_grafo(FILE *output, grafo g);
 
 //------------------------------------------------------------------------------
-// (apontador para) estrutura de dados que representa um vértice do grafo
+// (apontador para) estrutura de dados que representa um vÃ©rtice do grafo
 // 
-// cada vértice tem um nome que é uma "string"
+// cada vÃ©rtice tem um nome que Ã© uma "string"
 
 typedef struct vertice *vertice;
 
@@ -88,81 +98,97 @@ char *nome_vertice(vertice v);
 //------------------------------------------------------------------------------
 // devolve um vertice de nome s no grafo g,
 //         ou 
-//         NULL caso não exista em g um vertice de nome s
+//         NULL caso nÃ£o exista em g um vertice de nome s
 
 vertice vertice_nome(char *s, grafo g);
 
 //------------------------------------------------------------------------------
-// devolve o grau do vértice v no grafo g
+// devolve o grau do vÃ©rtice v no grafo g
 // 
-// se g é direcionado, e 
-//                       direcao =  1, o grau devolvido é o de saída
-//                       direcao = -1, o grai devolvido é o de entrada
+// se g Ã© direcionado, e 
+//                       direcao =  1, o grau devolvido Ã© o de saÃ­da
+//                       direcao = -1, o grai devolvido Ã© o de entrada
 //                
-// caso contrário o valor de direcao é ignorado.                  
+// caso contrÃ¡rio o valor de direcao Ã© ignorado.                  
 
 unsigned int grau(vertice v, int direcao, grafo g);
 
 //------------------------------------------------------------------------------
 // devolve o "primeiro" vizinho de v em g,
 //         ou
-//         NULL se v é vértice isolado em g
+//         NULL se v Ã© vÃ©rtice isolado em g
 //
-// se g é direcionado, e 
-//                       direcao =  1, o vizinho devolvido é de saída
-//                       direcao = -1, o vizinho devolvido é de entrada
+// se g Ã© direcionado, e 
+//                       direcao =  1, o vizinho devolvido Ã© de saÃ­da
+//                       direcao = -1, o vizinho devolvido Ã© de entrada
 //                
-// caso contrário o valor de direcao é ignorado.                  
+// caso contrÃ¡rio o valor de direcao Ã© ignorado.                  
 
 vertice primeiro_vizinho(vertice v, int direcao, grafo g);
 
 //------------------------------------------------------------------------------
-// devolve o "próximo" vizinho de v em g após u,
+// devolve o "prÃ³ximo" vizinho de v em g apÃ³s u,
 //         ou
-//         NULL se u é o "último" vizinho de v em g
+//         NULL se u Ã© o "Ãºltimo" vizinho de v em g
 //
-// se g é direcionado, e 
-//                       direcao =  1, o vizinho devolvido é de saída
-//                       direcao = -1, o vizinho devolvido é de entrada
+// se g Ã© direcionado, e 
+//                       direcao =  1, o vizinho devolvido Ã© de saÃ­da
+//                       direcao = -1, o vizinho devolvido Ã© de entrada
 //                
-// caso contrário o valor de direcao é ignorado.                  
+// caso contrÃ¡rio o valor de direcao Ã© ignorado.                  
 
 vertice proximo_vizinho(vertice u, vertice v, int direcao, grafo g);
 
 //------------------------------------------------------------------------------
-// devolve 1, se g é um grafo bipartido, 
+// devolve 1, se g Ã© um grafo bipartido, 
 //         ou
-//         0, caso contrário
+//         0, caso contrÃ¡rio
 
 int bipartido( grafo g);
 
 //------------------------------------------------------------------------------
-// devolve em c um caminho mínimo de u a v no grafo não direcionado g, 
-//              de forma que
+// devolve em c um caminho (direcionado) mÃ­nimo de u a v no grafo
+//              (direcionado e/ou ponderado) g, de forma que
 //
-//                  c[0]=u, ..., c[n]=v, onde n é o tamanho do caminho
+//                  c[0]=u, ..., c[n]=v, onde n Ã© o tamanho do caminho
+//
 //
 //              ou
 // 
-//              NULL se não existe tal caminho, 
+//              NULL se nÃ£o existe tal caminho, 
 //
-// em qualquer caso, devolve a distância de u a v em g
+// em qualquer caso, devolve a distÃ¢ncia de u a v em distancia e
+// devolve o tamanho do caminho como valor da funÃ§Ã£o
 
-int caminho_minimo(vertice *c, vertice u, vertice v, grafo g);
+int caminho_minimo(vertice *c, float *distÃ¢ncia, vertice u, vertice v, grafo g);
 
 //------------------------------------------------------------------------------
-// devolve 1, se v é um vértice simplicial em g, 
+// devolve 1, se v Ã© um vÃ©rtice simplicial em g, 
 //         ou
-//         0, caso contrário
+//         0, caso contrÃ¡rio
 //
-// um vértice é simplicial no grafo se sua vizinhança é uma clique
+// um vÃ©rtice Ã© simplicial no grafo se sua vizinhanÃ§a Ã© uma clique
 
 int simplicial(vertice v, grafo g);
 
 //------------------------------------------------------------------------------
-// devolve o diâmetro do grafo g
+// devolve o diÃ¢metro do grafo (direcionado e/ou ponderado) g
 
 int diametro(grafo g);
+
+//------------------------------------------------------------------------------
+// devolve o nÃºmero de componentes fortes de g,
+//         e um vetor de grafos com os componentes fortes de g em componentes
+
+int componentes_fortes(grafo g, grafo *componentes);
+
+//------------------------------------------------------------------------------
+// devolve um vetor de numero_vertices(g) vertices com uma ordenaÃ§Ã£o
+//         topolÃ³gica de g
+//         ou 
+//         NULL, caso g seja cÃ­clico
+
+vertice *ordenacao_topologica(grafo g);
 
 //------------------------------------------------------------------------------
 #endif
