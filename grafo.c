@@ -22,7 +22,7 @@ struct grafo
 {
 	char *nome;
 	unsigned int numvert; // Numero de vertices
-	unsigned int numarestas; // Numero de arestas (TODO: detalhar motivo da escolha no readme)
+	unsigned int numarestas; // Numero de arestas
 	vertice *vertices;
 	int *matadj; // Matriz de adjacencia
 	int isdirec; // É direcionado?
@@ -122,6 +122,7 @@ int destroi_grafo(grafo g)
 	}
 	free(g->vertices);
 	free(g->matadj);
+	free(g->nome);
 	free(g);
 	return 1;
 }
@@ -178,7 +179,6 @@ grafo le_grafo(FILE *input)
 		{
 			Agnode_t *head = aghead(e);
 			int hid = get_vertice_index(newGrafo, head);
-			printf("nid %d | hid %d | [%d]\n", nid, hid, nid*numnodes + hid);
 			newGrafo->matadj[numnodes * nid + hid] = 1;
 			if(!newGrafo->isdirec)
 				newGrafo->matadj[numnodes * hid  + nid] = 1;
@@ -226,7 +226,7 @@ grafo escreve_grafo(FILE *output, grafo g)
 				}
 				fprintf(output, "%s};\n", g->vertices[indices[j]]->nome);
 			} else if (k == 1){
-				fprintf(output, "\t%s -> %s\n;", g->vertices[i]->nome, g->vertices[indices[0]]->nome);
+				fprintf(output, "\t%s -> %s;\n", g->vertices[i]->nome, g->vertices[indices[0]]->nome);
 			}
 			k = 0;
 		}
