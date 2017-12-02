@@ -41,13 +41,12 @@ int direcionado(grafo g);
 //         ou 
 //         0, caso contrÃ¡rio
 //
-// o grafo g Ã© ponderado se todas as suas arestas/arcos tem um
-// atributo de nome "weight" cujo valor Ã© um nÃºmero.
+// o grafo g é ponderado se todas as suas arestas/arcos tem um
+// atributo de nome "weight" cujo valor é um número.
 
 int ponderado(grafo g);
-
 //------------------------------------------------------------------------------
-// devolve o nÃºmero de vÃ©rtices do grafo g
+// devolve o número de vértices do grafo g
 
 unsigned int numero_vertices(grafo g);
 
@@ -147,20 +146,19 @@ vertice proximo_vizinho(vertice u, vertice v, int direcao, grafo g);
 int bipartido( grafo g);
 
 //------------------------------------------------------------------------------
-// devolve em c um caminho (direcionado) mÃ­nimo de u a v no grafo
+// devolve em c um caminho (direcionado) mínimo de u a v no grafo
 //              (direcionado e/ou ponderado) g, de forma que
 //
-//                  c[0]=u, ..., c[n]=v, onde n Ã© o tamanho do caminho
 //
 //
 //              ou
 // 
-//              NULL se nÃ£o existe tal caminho, 
+//              NULL se nãoo existe tal caminho, 
 //
-// em qualquer caso, devolve a distÃ¢ncia de u a v em distancia e
-// devolve o tamanho do caminho como valor da funÃ§Ã£o
+// em qualquer caso, devolve a distância de u a v em distancia e
+// devolve o tamanho do caminho como valor da função
 
-int caminho_minimo(vertice *c, float *distÃ¢ncia, vertice u, vertice v, grafo g);
+int caminho_minimo(vertice *c, float *distancia, vertice u, vertice v, grafo g);
 
 //------------------------------------------------------------------------------
 // devolve 1, se v Ã© um vÃ©rtice simplicial em g, 
@@ -177,18 +175,19 @@ int simplicial(vertice v, grafo g);
 int diametro(grafo g);
 
 //------------------------------------------------------------------------------
-// devolve o nÃºmero de componentes fortes de g,
+// devolve o número de componentes fortes de g,
 //         e um vetor de grafos com os componentes fortes de g em componentes
 
 int componentes_fortes(grafo g, grafo *componentes);
 
 //------------------------------------------------------------------------------
-// devolve um vetor de numero_vertices(g) vertices com uma ordenaÃ§Ã£o
-//         topolÃ³gica de g
+// devolve um vetor de numero_vertices(g) vertices com uma ordenação
+//         topológica de g
 //         ou 
-//         NULL, caso g seja cÃ­clico
+//         NULL, caso g seja cíclico
 
 vertice *ordenacao_topologica(grafo g);
-
 //------------------------------------------------------------------------------
+
+>>>>>>> 0a46010e8378286419ba7e528818c272397922c7
 #endif
