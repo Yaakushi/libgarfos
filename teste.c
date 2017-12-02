@@ -5,7 +5,7 @@
 //------------------------------------------------------------------------------
 
 int main(void) {
-
+	float distancia;
 	grafo g = le_grafo(stdin);
 	if ( !g )
 		return 1;
@@ -23,7 +23,7 @@ int main(void) {
 
 	vertice *c = malloc(100 * sizeof(vertice));
 
-	int dist = caminho_minimo(c, v, v2, g);
+	int dist = caminho_minimo(c, &distancia, v, v2, g);
 	printf("DISTANCIA DE RUN PARA RUNSWAP: %d.\n", dist);
 	
 	if (v != NULL) {
@@ -34,6 +34,7 @@ int main(void) {
 	printf("%d arestas\n", numero_arestas(g));
 	printf("%sdirecionado\n", direcionado(g) ? "" : "não ");
 	printf("%sbipartido\n", bipartido(g) ? "" : "não ");
+	printf("%sponderado\n", ponderado(g) ? "" : "não ");
 
 
 	escreve_grafo(stdout, g);

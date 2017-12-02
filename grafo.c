@@ -26,6 +26,7 @@ struct grafo
 	vertice *vertices;
 	int *matadj; // Matriz de adjacencia
 	int isdirec; // É direcionado?
+	int ispond; // É ponderado?
 };
 
 //------------------------------------------------------------------------------
@@ -89,6 +90,17 @@ int direcionado(grafo g)
 	if(!g) return -1;
 	return g->isdirec;
 }
+
+//------------------------------------------------------------------------------
+// devolve 1, se g é ponderado,
+//         ou 
+//         0, caso contrário
+
+int ponderado(grafo g)
+{
+	if(!g) return -1;
+	return g->ispond;
+}
 //------------------------------------------------------------------------------
 // devolve o número de vértices do grafo g
 
@@ -135,12 +147,14 @@ int destroi_grafo(grafo g)
 
 grafo le_grafo(FILE *input)
 {
+	char *weight = malloc(7 * sizeof(char));
 	grafo newGrafo = malloc(sizeof(struct grafo));
 	if(!newGrafo) return NULL;
 
 	// Abre o novo grafo.
 	Agraph_t *g = agread(input, 0);
 
+	int hasnotweighted = 0; // supoe com peso, se achar 1 aresta sem peso, troca
 	int numnodes = agnnodes(g);
 	// Preenche os campos que a lib "dá de graça".
 	//newGrafo->nome = agnameof(g);
@@ -173,17 +187,28 @@ grafo le_grafo(FILE *input)
 	}
 
 	nid = 0;
+	strcpy(weight, "weight");
 	for(Agnode_t *n = agfstnode(g); n; n = agnxtnode(g, n))
 	{
 		for(Agedge_t *e = agfstout(g, n); e; e = agnxtout(g, e))
 		{
 			Agnode_t *head = aghead(e);
 			int hid = get_vertice_index(newGrafo, head);
-			newGrafo->matadj[numnodes * nid + hid] = 1;
+			if (!agattrsym(e, weight)) {
+				newGrafo->matadj[numnodes * nid + hid] = 1;
+				hasnotweighted = 1;
+			} else {
+				newGrafo->matadj[numnodes * nid + hid] = atoi(agget(e, weight));
+			}
 			if(!newGrafo->isdirec)
 				newGrafo->matadj[numnodes * hid  + nid] = 1;
 		}
 		nid++;
+	}
+	if (hasnotweighted) { 
+		newGrafo->ispond = 0;
+	} else {
+		newGrafo->ispond = 1;
 	}
 
 	for(unsigned int i = 0; i < newGrafo->numvert; i++)
@@ -521,7 +546,7 @@ int bipartido(grafo g)
 //
 // em qualquer caso, devolve a distância de u a v em g
 
-int caminho_minimo(vertice *c, vertice u, vertice v, grafo g)
+int caminho_minimo(vertice *c, float *distancia, vertice u, vertice v, grafo g)
 {
 	vertice *queue = NULL;
 	long unsigned int qsize = 0;
@@ -564,16 +589,17 @@ int caminho_minimo(vertice *c, vertice u, vertice v, grafo g)
 		}
 	}
 
-	int distancia = curver->nivel;
+	int dist = curver->nivel;
 
-	for(int i = distancia; i > 0; i--)
+	for(int i = dist; i > 0; i--)
 	{
 		c[i] = curver;
 		curver = curver->pai;
 	}
 	c[0] = u;
+	*distancia = (float) dist; // NÃO TESTADO
 
-	return distancia;
+	return dist;
 }
 //------------------------------------------------------------------------------
 // devolve o diâmetro do grafo g
