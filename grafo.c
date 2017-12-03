@@ -41,6 +41,7 @@ struct vertice
 	int cor, visitado, nivel;
 	unsigned int vecid;
 	vertice pai;
+	vertice top;
 	int pad;
 };
 

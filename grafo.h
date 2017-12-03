@@ -188,6 +188,4 @@ int componentes_fortes(grafo g, grafo *componentes);
 
 vertice *ordenacao_topologica(grafo g);
 //------------------------------------------------------------------------------
-
->>>>>>> 0a46010e8378286419ba7e528818c272397922c7
 #endif
