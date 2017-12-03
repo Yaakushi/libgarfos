@@ -1,4 +1,4 @@
-Trabalho I de CI065 (2017/2)
+Trabalho II de CI065 (2017/2)
 
 Alunos:
 GRR20148763 - Guilherme Bittencourt
