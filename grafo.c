@@ -41,7 +41,7 @@ struct vertice
 	int cor, visitado, nivel;
 	unsigned int vecid;
 	vertice pai;
-	vertice top;
+	unsigned int lado;
 	int pad;
 };
 
@@ -177,6 +177,7 @@ grafo le_grafo(FILE *input)
 	for(Agnode_t *n = agfstnode(g); n; n = agnxtnode(g, n))
 	{
 		vertice v = malloc(sizeof(struct vertice));
+		v->lado = 0;
 		if(!v) return NULL;
 
 		v->id = AGID(n);
@@ -198,11 +199,13 @@ grafo le_grafo(FILE *input)
 			if (!agattrsym(e, weight)) {
 				newGrafo->matadj[numnodes * nid + hid] = 1;
 				hasnotweighted = 1;
+				if(!newGrafo->isdirec)
+					newGrafo->matadj[numnodes * hid  + nid] = 1;
 			} else {
 				newGrafo->matadj[numnodes * nid + hid] = atoi(agget(e, weight));
+				if(!newGrafo->isdirec)
+					newGrafo->matadj[numnodes * hid  + nid] = atoi(agget(e, weight));
 			}
-			if(!newGrafo->isdirec)
-				newGrafo->matadj[numnodes * hid  + nid] = 1;
 		}
 		nid++;
 	}
@@ -653,6 +656,34 @@ void imprime_matriz(int *mat, unsigned int tam, unsigned int numvert)
 		}
 	}
 }
+
+void ordena(grafo g, vertice r)
+{
+	for (int i; i < g.numvert; i++) {
+		
+	}
+}
+
+vertice *ordenacao_topologica(grafo g)
+{
+	vertice *l = malloc(g.numvert * sizeof(vertice));
+	int k = g.numvert - 1; // índice de inserção na lista
+	for (int i = 0; i < g.numvert; i++) {
+		if (g.vertices[i].lado == 0) {
+			ordena(g, g.vertices[i]);
+		}
+	}
+	return l;
+}
+
+
+
+
+
+
+
+
+
 
 
 
