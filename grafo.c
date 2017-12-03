@@ -11,6 +11,13 @@ const int infinito = 0x3f3f3f3f;
 
 // Função para testes com matriz de adjacência
 void imprime_matriz(int *, unsigned int, unsigned int);
+
+// Função para testes com ordenação topológica
+void imprime_top(grafo g, vertice *l);
+
+// Função para ordenar todos os vizinhos de r em g (em ord. top)
+void ordena(grafo g, vertice r, vertice *l, int *k);
+
 //------------------------------------------------------------------------------
 // (apontador para) estrutura de dados para representar um grafo
 // 
@@ -639,6 +646,40 @@ int diametro(grafo g)
 	free(matFloyd);
     return max;
 }
+
+//------------------------------------------------------------------------------
+// Função para ordenar todos os vizinhos de r em g (em ord. top)
+void ordena(grafo g, vertice r, vertice *l, int *k)
+{
+	r->lado = 1;
+	for (unsigned int i = 0; i < g->numvert; i++) {
+		// se é vizinho de r e tem lado == 0
+		if (g->matadj[g->numvert * r->vecid + i] != 0 && g->vertices[i]->lado == 0) {
+			ordena(g, g->vertices[i], l, k);
+		}
+	}
+	l[(*k)--] = r;
+	r->lado = 2;
+}
+
+//------------------------------------------------------------------------------
+// devolve um vetor de numero_vertices(g) vertices com uma ordenação
+//         topológica de g
+//         ou 
+//         NULL, caso g seja cíclico
+vertice *ordenacao_topologica(grafo g)
+{
+	vertice *l = malloc(g->numvert * sizeof(vertice));
+	int k = (int)g->numvert - 1; // índice de inserção na lista
+	for (unsigned int i = 0; i < g->numvert; i++) {
+		if (g->vertices[i]->lado == 0) {
+			ordena(g, g->vertices[i], l, &k);
+		}
+	}
+	imprime_top(g, l); // !!! ---> REMOVER ANTES DE ENVIAR <--- !!!
+	return l;
+}
+
 //------------------------------------------------------------------------------
 
 void imprime_matriz(int *mat, unsigned int tam, unsigned int numvert)
@@ -657,33 +698,12 @@ void imprime_matriz(int *mat, unsigned int tam, unsigned int numvert)
 	}
 }
 
-void ordena(grafo g, vertice r)
+void imprime_top(grafo g, vertice *l)
 {
-	for (int i; i < g.numvert; i++) {
-		
+	for (unsigned int i = 0; i < g->numvert; i++) {
+		printf("%s ", l[i]->nome);
 	}
+	printf("\n");
+	return;
 }
-
-vertice *ordenacao_topologica(grafo g)
-{
-	vertice *l = malloc(g.numvert * sizeof(vertice));
-	int k = g.numvert - 1; // índice de inserção na lista
-	for (int i = 0; i < g.numvert; i++) {
-		if (g.vertices[i].lado == 0) {
-			ordena(g, g.vertices[i]);
-		}
-	}
-	return l;
-}
-
-
-
-
-
-
-
-
-
-
-
 

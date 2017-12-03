@@ -6,6 +6,7 @@
 
 int main(void) {
 	float distancia;
+	vertice *l;
 	grafo g = le_grafo(stdin);
 	if ( !g )
 		return 1;
@@ -38,6 +39,7 @@ int main(void) {
 
 
 	escreve_grafo(stdout, g);
-
+	l = ordenacao_topologica(g);
+	free(l);
 	return ! destroi_grafo(g);
 }
