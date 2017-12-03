@@ -23,10 +23,8 @@ lista de adjacência nos próximos trabalhos.
 vizinho do grafo de acordo com a matriz de adjacência, cujos vértices são
 "ordenados" de acordo com a ordem que apareceram no arquivo DOT original.
 
-- Vimos algumas otimizações que pareciam interessantes para alguma das funções
-desse trabalho (simplicial e diâmetro, por exemplo), mas escolhemos não implementá-las
-pois não sabiamos com quais tipos de grafo nossa biblioteca iria trabalhar no
-futuro (com peso, direcionado, não direcionado, denso, esparso, etc).
+- Este trabalho busca pelo peso de uma aresta através do atributo "weight"
+ex: "a -- b [weight=3];
 
 * Bugs conhecidos:
 Nenhum.

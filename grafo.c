@@ -16,7 +16,7 @@ void imprime_matriz(int *, unsigned int, unsigned int);
 void imprime_top(grafo g, vertice *l);
 
 // Função para ordenar todos os vizinhos de r em g (em ord. top)
-void ordena(grafo g, vertice r, vertice *l, int *k);
+int ordena(grafo g, vertice r, vertice *l, int *k, vertice *d, int *j);
 
 //------------------------------------------------------------------------------
 // (apontador para) estrutura de dados para representar um grafo
@@ -649,17 +649,29 @@ int diametro(grafo g)
 
 //------------------------------------------------------------------------------
 // Função para ordenar todos os vizinhos de r em g (em ord. top)
-void ordena(grafo g, vertice r, vertice *l, int *k)
+int ordena(grafo g, vertice r, vertice *l, int *k, vertice *d, int *j)
 {
+	int range;
 	r->lado = 1;
-	for (unsigned int i = 0; i < g->numvert; i++) {
-		// se é vizinho de r e tem lado == 0
-		if (g->matadj[g->numvert * r->vecid + i] != 0 && g->vertices[i]->lado == 0) {
-			ordena(g, g->vertices[i], l, k);
+	d[(*j)++] = r;
+	range = (g->isdirec ? (*j) : (*j) - 2); // se nao direc, não verifica a si e ao pai
+	for (unsigned int i = 0; (i < g->numvert); i++) {
+		if (g->matadj[g->numvert * r->vecid + i] != 0) { // se é alcançável
+			for (int a = 0; a < range; a++) {
+				if (g->vertices[i]->vecid == d[a]->vecid) { // ve se faz ciclo...
+					return 0; // ...voltando para um dos vértices do caminho
+				}
+			}
+			if (g->vertices[i]->lado == 0) {
+				if (ordena(g, g->vertices[i], l, k, d, j) == 0) {
+					return 0;
+				}
+			}
 		}
 	}
 	l[(*k)--] = r;
 	r->lado = 2;
+	return 1;
 }
 
 //------------------------------------------------------------------------------
@@ -669,14 +681,25 @@ void ordena(grafo g, vertice r, vertice *l, int *k)
 //         NULL, caso g seja cíclico
 vertice *ordenacao_topologica(grafo g)
 {
-	vertice *l = malloc(g->numvert * sizeof(vertice));
+	vertice *l = malloc(g->numvert * sizeof(vertice)); // resultado
+	vertice *d = malloc(g->numvert * sizeof(vertice)); // caminho
+	int j = 0;
 	int k = (int)g->numvert - 1; // índice de inserção na lista
 	for (unsigned int i = 0; i < g->numvert; i++) {
 		if (g->vertices[i]->lado == 0) {
-			ordena(g, g->vertices[i], l, &k);
+			if (ordena(g, g->vertices[i], l, &k, d, &j) == 0) {
+				free(l);
+				free(d);
+				l = NULL;
+				imprime_top(g, l); // !!! ---> REMOVER ANTES DE ENVIAR <--- !!!
+				return NULL;
+			} 
 		}
+		memset(d, 0, (long unsigned int)j * sizeof(vertice));
+		j = 0;
 	}
 	imprime_top(g, l); // !!! ---> REMOVER ANTES DE ENVIAR <--- !!!
+	free(d);
 	return l;
 }
 
@@ -700,6 +723,10 @@ void imprime_matriz(int *mat, unsigned int tam, unsigned int numvert)
 
 void imprime_top(grafo g, vertice *l)
 {
+	if (l == NULL) {
+		printf("grafo cíclico\n");
+		return;
+	}
 	for (unsigned int i = 0; i < g->numvert; i++) {
 		printf("%s ", l[i]->nome);
 	}
