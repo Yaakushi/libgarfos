@@ -19,23 +19,31 @@ int main(void) {
 
 	char *s = "a";
 	vertice v = vertice_nome(s, g); 
-	char *b = "d";
+	char *b = "e";
 	vertice v2 = vertice_nome(b, g);
 
 	vertice *c = malloc(100 * sizeof(vertice));
 
-	int dist = caminho_minimo(c, &distancia, v, v2, g);
-	printf("DISTANCIA DE RUN PARA RUNSWAP: %d.\n", dist);
-	
+
+	if(v && v2)
+	{
+		int dist = caminho_minimo(c, &distancia, v, v2, g);
+		printf("DISTANCIA DE RUN PARA RUNSWAP: %d.\n", dist);
+	}
+
 	if (v != NULL) {
 		//printf("%ssimplicial\n", simplicial(v, g) ? "" : "não ");
 	}
+
+	grafo subg[100];
+
 	printf("nome: %s\n", nome_grafo(g));
 	printf("%d vértices\n", numero_vertices(g));
 	printf("%d arestas\n", numero_arestas(g));
 	printf("%sdirecionado\n", direcionado(g) ? "" : "não ");
 	printf("%sbipartido\n", bipartido(g) ? "" : "não ");
 	printf("%sponderado\n", ponderado(g) ? "" : "não ");
+	printf("%d componentes fortes\n", componentes_fortes(g, subg));
 
 
 	escreve_grafo(stdout, g);

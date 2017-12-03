@@ -27,4 +27,4 @@ vizinho do grafo de acordo com a matriz de adjacência, cujos vértices são
 ex: "a -- b [weight=3];
 
 * Bugs conhecidos:
-Nenhum.
+- A função 'caminho_minimo' não suporta grafos com pesos negativos.

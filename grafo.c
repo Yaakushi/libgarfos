@@ -18,6 +18,16 @@ void imprime_top(grafo g, vertice *l);
 // Função para ordenar todos os vizinhos de r em g (em ord. top)
 int ordena(grafo g, vertice r, vertice *l, int *k, vertice *d, int *j);
 
+// DFS usada pela função de componentes fortes para gerar a stack de busca.
+void compforte_gerastack(grafo g, vertice v, unsigned int *stack);
+
+// DFS inversa usada pela função de componentes fortes para pintar cada 
+// componente.
+void compforte_pinta(grafo g, vertice v, unsigned int cor);
+
+// Gera o subgrafo de um determinado componente.
+grafo compforte_grafocor(grafo g, unsigned int cor);
+
 //------------------------------------------------------------------------------
 // (apontador para) estrutura de dados para representar um grafo
 // 
@@ -49,7 +59,7 @@ struct vertice
 	unsigned int vecid;
 	vertice pai;
 	unsigned int lado;
-	int pad;
+	int dist;
 };
 
 static int numgraphs = 0; // Numero de grafos carregados
@@ -567,6 +577,7 @@ int caminho_minimo(vertice *c, float *distancia, vertice u, vertice v, grafo g)
 		g->vertices[i]->visitado = 0;
 		g->vertices[i]->pai = NULL;
 	}
+	u->dist = 0;
 	u->nivel = 0;
 
 	vertice curver = u;
@@ -583,6 +594,9 @@ int caminho_minimo(vertice *c, float *distancia, vertice u, vertice v, grafo g)
 				viz->pai = curver;
 				viz->visitado = 1;
 				viz->nivel = curver->nivel + 1;
+				if(g->ispond)
+					viz->dist = curver->dist + 
+						g->matadj[curver->vecid * g->numvert + viz->vecid];
 			}
 			while((viz = proximo_vizinho(viz, curver, 1, g)));
 		}
@@ -600,9 +614,10 @@ int caminho_minimo(vertice *c, float *distancia, vertice u, vertice v, grafo g)
 		}
 	}
 
-	int dist = curver->nivel;
-
-	for(int i = dist; i > 0; i--)
+	int dist = (g->ispond ? curver->dist : curver->nivel);
+	int vnivel = curver->nivel;
+			
+	for(int i = vnivel; i > 0; i--)
 	{
 		c[i] = curver;
 		curver = curver->pai;
@@ -691,19 +706,134 @@ vertice *ordenacao_topologica(grafo g)
 				free(l);
 				free(d);
 				l = NULL;
-				imprime_top(g, l); // !!! ---> REMOVER ANTES DE ENVIAR <--- !!!
 				return NULL;
 			} 
 		}
 		memset(d, 0, (long unsigned int)j * sizeof(vertice));
 		j = 0;
 	}
-	imprime_top(g, l); // !!! ---> REMOVER ANTES DE ENVIAR <--- !!!
 	free(d);
 	return l;
 }
 
 //------------------------------------------------------------------------------
+
+// DFS para gerar a stack para a função de componentes fortes.
+void compforte_gerastack(grafo g, vertice v, unsigned int *stack)
+{
+	v->visitado = 1;
+
+	vertice pv = primeiro_vizinho(v, 1, g);
+	if(pv)
+	{
+		do
+		{
+			if(pv->visitado == 0) compforte_gerastack(g, pv, stack);
+		} while((pv = proximo_vizinho(pv, v, 1, g)));
+	}
+	
+	//shift na stack
+	for(unsigned int i = g->numvert; i > 0; i--)
+		stack[i] = stack[i-1];
+
+	stack[0] = v->vecid;
+}
+
+// Percorre o grafo a partir do vertice v de forma invertida
+// e marca o componente do vértice v com uma cor.
+void compforte_pinta(grafo g, vertice v, unsigned int cor)
+{
+	if(v->cor != -1) return;
+
+	v->cor = (int) cor;
+	vertice pv = primeiro_vizinho(v, -1, g);
+	if(pv)
+	{
+		do
+		{
+			compforte_pinta(g, pv, cor);
+		} while((pv = proximo_vizinho(pv, v, -1, g)));
+	}
+}
+
+// Retorna o subgrafo com uma determinada cor.
+grafo compforte_grafocor(grafo g, unsigned int cor)
+{
+	grafo corg = malloc(sizeof(struct grafo));
+	if(!corg) return NULL;
+
+	unsigned int numvert = 0;
+	corg->vertices = malloc(sizeof(vertice) * g->numvert);
+
+	for(unsigned int i = 0; i < g->numvert; i++)
+		if(g->vertices[i]->cor == (int) cor)
+			corg->vertices[numvert++] = g->vertices[i];
+
+	corg->numvert = numvert;
+	corg->vertices = realloc(corg->vertices, sizeof(vertice) * corg->numvert);
+	corg->isdirec = g->isdirec;
+	corg->nome = g->nome;
+	corg->ispond = g->ispond;
+	corg->matadj = calloc((size_t) (numvert * numvert), sizeof(int));
+	
+	for(unsigned int i = 0; i < numvert; i++)
+	{
+		unsigned int tid = corg->vertices[i]->vecid;
+
+		for(unsigned int j = 0; j < numvert; j++)
+		{
+			unsigned int hid = corg->vertices[j]->vecid;
+			corg->matadj[i * numvert + j] = g->matadj[tid * g->numvert + hid];
+		}
+	}
+
+	for(unsigned int i = 0; i < numvert; i++)
+		corg->vertices[i]->vecid = i;
+
+	return corg;
+}
+
+//------------------------------------------------------------------------------
+// devolve o número de componentes fortes de g,
+//         e um vetor de grafos com os componentes fortes de g em componentes
+
+
+int componentes_fortes(grafo g, grafo *componentes)
+{
+	// componentes fortemente conexos não fazem sentido em grafos 
+	// não-direcionados.
+	if(!direcionado(g)) return 0;
+
+	unsigned int sizestack = numero_vertices(g);
+	unsigned int numcomp = 0;
+
+	unsigned int *stack = malloc(sizeof(unsigned int) * sizestack);
+	if(!stack) return -1;
+
+	for(unsigned int i = 0; i < g->numvert; i++)
+	{
+		g->vertices[i]->visitado = 0;
+		g->vertices[i]->cor = -1;
+	}
+
+	// DFS
+	for(unsigned int i = 0; i < g->numvert; i++)
+		if(g->vertices[i]->visitado == 0)
+			compforte_gerastack(g, g->vertices[i], stack);
+
+	for(unsigned int i = 0; i < sizestack; i++)
+	{
+		if(g->vertices[stack[i]]->cor == -1)
+			compforte_pinta(g, g->vertices[stack[i]], numcomp++);
+	}
+
+	for(unsigned int i = 0; i < numcomp; i++)
+		componentes[i] = compforte_grafocor(g, i);
+
+	free(stack);
+
+	return (int) numcomp;
+}
 
 void imprime_matriz(int *mat, unsigned int tam, unsigned int numvert)
 {
